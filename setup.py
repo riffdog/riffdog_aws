@@ -79,4 +79,9 @@ setup(
         'riffdog'
     ],
 
+    extras_require={
+    #    "aws":  ["riffdog_aws"], 
+    #    "reST": ["riffdog_cloudflare"],
+    }
+
 )
