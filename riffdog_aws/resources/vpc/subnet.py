@@ -17,7 +17,7 @@ class AWSSubnet(AWSResource):
     def fetch_real_regional_resources(self, region):
         logging.info("Looking for aws_subnet resources")
 
-        ec2 = self._get_resource('ec2', region_name=region)
+        ec2 = self._get_resource('ec2', region)
 
         for subnet in ec2.subnets.filter():
             self._subnets_in_aws[subnet.id] = subnet
