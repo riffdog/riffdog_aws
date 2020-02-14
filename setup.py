@@ -77,11 +77,6 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'riffdog'
-    ],
-
-    extras_require={
-    #    "aws":  ["riffdog_aws"], 
-    #    "reST": ["riffdog_cloudflare"],
-    }
+    ]
 
 )
