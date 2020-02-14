@@ -1,7 +1,6 @@
 """
 This module is for the VPC Reosurce
 """
-import boto3
 import logging
 
 from riffdog.data_structures import ReportElement
@@ -18,7 +17,7 @@ class AWSVPC(AWSResource):
     def fetch_real_regional_resources(self, region):
         logging.info("Looking for aws_vpc resources")
 
-        ec2 = boto3.resource('ec2', region_name=region)
+        ec2 = self._get_resource('ec2', region_name=region)
 
         for vpc in ec2.vpcs.filter():
             self._vpcs_in_aws[vpc.id] = vpc
