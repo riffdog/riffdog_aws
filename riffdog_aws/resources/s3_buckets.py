@@ -28,7 +28,7 @@ class S3Buckets(AWSResource):
             self._real_buckets[bucket['Name']] = bucket
 
     def process_state_resource(self, state_resource, state_filename):
-        f = FoundItem("aws_s3_bucket", terraform_id=state_resource['name'], terraform_data=state_resource)
+        f = FoundItem("aws_s3_bucket", terraform_id=state_resource['name'], state_data=state_resource)
 
         self._states_found[state_resource['name']] = f
 
@@ -38,7 +38,7 @@ class S3Buckets(AWSResource):
         
         for key, item in self._states_found.items():
 
-            real_bucket_name = item.terraform_data['instances'][0]['attributes']['bucket']
+            real_bucket_name = item.state_data['instances'][0]['attributes']['bucket']
             
             #except (KeyError, IndexError):
             #    real_bucket_name = key
