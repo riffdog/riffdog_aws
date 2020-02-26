@@ -4,8 +4,9 @@ This module is for Elastic Load Balancers v2 (alb/nlb) Target Groups.
 
 import logging
 
-from riffdog.data_structures import ReportElement
-from riffdog.resource import AWSResource, register, ResourceDirectory
+from riffdog.data_structures import FoundItem
+from riffdog.resource import register, ResourceDirectory
+from ...aws_resource impor AWSResource
 
 logger = logging.getLogger(__name__)
 
@@ -28,23 +29,20 @@ class AWSLBTargetGroup(AWSResource):
 
     def process_state_resource(self, state_resource, state_filename):
         for instance in state_resource["instances"]:
-            self._tgs_in_state[instance["attributes"]["name"]] = instance
+            # FIXME: how to identify which type was matched
+            item = FoundItem("aws_lb_target_group", terraform_id=instance["attributes"]["name"], state_data=instance)
+            self._tgs_in_state[instance["attributes"]["name"]] = item
 
     def compare(self, depth):
-        out_report = ReportElement()
 
         for key, val in self._tgs_in_state.items():
-            if key not in self._tgs_in_aws:
-                out_report.in_tf_but_not_real.append(key)
-            else:
-                out_report.matched.append(key)
+            if key in self._tgs_in_aws:
+                val.real_id = key
+                val.real_data = self._tgs_in_aws[key]
 
         for key, val in self._tgs_in_aws.items():
-            if key not in self._tgs_in_state:
-                print(key)
-                out_report.in_real_but_not_tf.append(key)
-
-        return out_report
+            #FIXME: magic string one of two choices
+            item = FoundItem("aws_lb_target_group", real_id=key, real_data=val)
 
     @property
     def target_groups_in_aws(self):
