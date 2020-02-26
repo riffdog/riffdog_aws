@@ -6,7 +6,8 @@ import logging
 
 from riffdog.data_structures import FoundItem
 from riffdog.resource import register, ResourceDirectory
-from ...aws_resource impor AWSResource
+
+from ...aws_resource import AWSResource
 
 logger = logging.getLogger(__name__)
 
@@ -71,19 +72,17 @@ class AWSLBTargetGroupAttachment(AWSResource):
 
     def process_state_resource(self, state_resource, state_filename):
         for instance in state_resource["instances"]:
-            self._tg_attachments_in_state[instance["attributes"]["target_id"]] = instance
+            # FIXME: target group attachment
+            item = FoundItem("aws_lb_target_group_attachment", terraform_id=instance["attributes"]["target_id"], state_data=instance)
+            self._tg_attachments_in_state[instance["attributes"]["target_id"]] = item
 
     def compare(self, depth):
-        out_report = ReportElement()
 
         for key, val in self._tg_attachments_in_state.items():
-            if key not in self._tg_attachments_in_aws:
-                out_report.in_tf_but_not_real.append(key)
-            else:
-                out_report.matched.append(key)
+            if key in self._tg_attachments_in_aws:
+                val.real_id = key
+                val.real_data = self._tg_attachments_in_aws[key]
 
         for key, val in self._tg_attachments_in_aws.items():
             if key not in self._tg_attachments_in_state:
-                out_report.in_real_but_not_tf.append(key)
-
-        return out_report
+                item = FoundItem("aws_lb_target_group_attachment", real_id=key, real_data=val)
