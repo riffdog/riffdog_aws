@@ -43,9 +43,7 @@ class S3Buckets(AWSResource):
             #except (KeyError, IndexError):
             #    real_bucket_name = key
 
-            if real_bucket_name not in self._real_buckets:
-                out_report.in_tf_but_not_real.append(key)
-            else:
+            if real_bucket_name in self._real_buckets:
                 item.real_id = real_bucket_name
 
         for key, val in self._real_buckets.items():
