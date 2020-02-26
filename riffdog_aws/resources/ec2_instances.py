@@ -4,8 +4,9 @@ This module is for EC2 instance processing - terraform & boto and comparison.
 
 import logging
 
-from riffdog.data_structures import ReportElement
-from riffdog.resource import AWSResource, register
+from riffdog.data_structures import FoundItem
+from riffdog.resource import register
+from ..aws_resource import AWSResource
 
 logger = logging.getLogger(__name__)
 
@@ -43,14 +44,15 @@ class InstanceResource(AWSResource):
                     ips = ""
                     public = False
                     tags = {}
+                    
+                    if 'Tags' in instance:
+                        for tag in instance['Tags']:
+                            if tag["Key"] == "Name":
+                                name = tag["Value"]
 
-                    for tag in instance['Tags']:
-                        if tag["Key"] == "Name":
-                            name = tag["Value"]
-
-                        else:
-                            key = tag["Key"].replace(" ", "")
-                            tags[key] = tag["Value"]
+                            else:
+                                key = tag["Key"].replace(" ", "")
+                                tags[key] = tag["Value"]
 
                     # IP calculation
                     for interface in instance["NetworkInterfaces"]:
@@ -84,27 +86,24 @@ class InstanceResource(AWSResource):
                     }
 
     def process_state_resource(self, state_resource, state_filename):
+        
         for instance in state_resource['instances']:
-            instance['state_filename'] = state_filename
-            self._states_found[instance['attributes']['id']] = instance
+            item = FoundItem("aws_instance", terraform_id=instance['attributes']['id'], state_data = instance)
+            self._states_found[instance['attributes']['id']] = item
 
+            
     def compare(self, depth):
         # this function should be called once, take the local data and return
         # an array of result elements.
-
-        out_report = ReportElement()
-
+        
         for key, val in self._states_found.items():
-            if key not in self._real_servers:
-                out_report.in_tf_but_not_real.append(key)
-            else:
-                out_report.matched.append(key)
+            if key in self._real_servers:
+                val.real_id = key
+                val.real_data = self._real_servers[key]
 
         for key, val in self._real_servers.items():
             if key not in self._states_found:
-                out_report.in_real_but_not_tf.append(key)
-
-        return out_report
+                item = FoundItem("aws_instance", real_id=val['aws_id'], real_data=val)
 
 
 def _get_VPC_name(client, vpc_id, vpcs=None):
