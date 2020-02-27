@@ -15,7 +15,7 @@ class AWSResource(Resource):
     def fetch_real_resources(self):
         
         if self.regional_resource:
-            for region in RDConfig().regions:
+            for region in RDConfig().aws_regions:
                 self.fetch_real_regional_resources(region)
         else:
             self.fetch_real_global_resources()
