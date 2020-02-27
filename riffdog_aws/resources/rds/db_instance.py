@@ -38,6 +38,19 @@ class AWSDBInstance(AWSResource):
             #item = FoundItem("aws_db_instance", terraform_id=instance["attributes"]["resource_id"], predicted_id=instance["attributes"]["id"], state_data=instance)
             item = FoundItem("aws_db_instance", terraform_id=instance["attributes"]["id"], predicted_id=instance["attributes"]["id"], state_data=instance)
 
-    def compare(self, depth):
-        pass
+    def compare(self, item, depth):
+        # This is now called multiple times
+
+        #print("------------------")
+
+        #print(item.real_data)
+        #print("$$$$$$$$$$$$$$$$$$")
+        #print(item.state_data)
+
+        #print("------------------")
+        
+        # Presumably we could do some kind of 'map table' to loop over justdefining both sides here?
+        if not item.state_dta['attributes']['instance_class'] == item.real_data['DBInstanceClass']:
+            item.dirty = True
+        
         
