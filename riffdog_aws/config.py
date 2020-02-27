@@ -5,7 +5,9 @@ from riffdog.config import RDConfig
 DEFAULT_REGION="us-east-1"
 
 def add_args(parser):
-    parser.add_argument('--aws_region', help="AWS regions to use", action='append')
+
+    group = parser.add_argument_group('AWS Resource')
+    group.add_argument('--aws_region', help="AWS regions to use", action='append')
     
 def config():
     config = RDConfig()
