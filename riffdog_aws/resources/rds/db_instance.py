@@ -1,7 +1,9 @@
 import logging
 
-from riffdog.data_structures import ReportElement
-from riffdog.resource import AWSResource, register
+from riffdog.data_structures import FoundItem
+from riffdog.resource import register
+
+from ...aws_resource import AWSResource
 
 logger = logging.getLogger(__name__)
 
@@ -27,19 +29,18 @@ class AWSDBInstance(AWSResource):
 
     def process_state_resource(self, state_resource, state_filename):
         for instance in state_resource["instances"]:
-            self._instances_in_state[instance["attributes"]["id"]] = instance
+            item = FoundItem("aws_db_instance", terraform_id=instance["attributes"]["id"], state_data=instance)
+            self._instances_in_state[instance["attributes"]["id"]] = item
 
     def compare(self, depth):
-        out_report = ReportElement()
-
+        
         for key, val in self._instances_in_state.items():
-            if key not in self._instances_in_aws:
-                out_report.in_tf_but_not_real.append(key)
-            else:
-                out_report.matched.append(key)
+            if key in self._instances_in_aws:
+                val.real_id = key
+                val.real_data = self._instances_in_aws[key]
 
         for key, val in self._instances_in_aws.items():
             if key not in self._instances_in_state:
-                out_report.in_real_but_not_tf.append(key)
+                item = FoundItem("aws_db_instance", real_id=key, real_data=val)
 
-        return out_report
+        
