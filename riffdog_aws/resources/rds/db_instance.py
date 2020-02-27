@@ -1,7 +1,7 @@
 import logging
 
 from riffdog.data_structures import FoundItem
-from riffdog.resource import register
+from riffdog.resource import register, ResourceDirectory
 
 from ...aws_resource import AWSResource
 
@@ -14,33 +14,30 @@ class AWSDBInstance(AWSResource):
     These are a faux thing to Terraform. An aws_rds_cluster_instance is
     just an aws_db_instance that belongs to a Cluster.
     """
-    _instances_in_aws = {}
-    _instances_in_state = {}
 
     def fetch_real_regional_resources(self, region):
-        logger.info("Looking for RDS resources")
+        logger.info("Looking for RDS db resources")
 
         client = self._get_client("rds", region)
 
         response = client.describe_db_instances()
+        rd = ResourceDirectory()
 
         for instance in response["DBInstances"]:
-            self._instances_in_aws[instance["DBInstanceIdentifier"]] = instance
+            try:
+                item = rd.get_item(predicted_id=instance["DBInstanceIdentifier"])
+                item.real_id = instance["DBInstanceIdentifier"]
+                item.real_data = instance
+            except KeyError:
+                # that item isnt predicted!
+                item = FoundItem("aws_db_instance", real_id=instance["DBInstanceIdentifier"], real_data=instance)
 
     def process_state_resource(self, state_resource, state_filename):
+        print("Found a resource of aws_db_instance!")
         for instance in state_resource["instances"]:
-            item = FoundItem("aws_db_instance", terraform_id=instance["attributes"]["id"], state_data=instance)
-            self._instances_in_state[instance["attributes"]["id"]] = item
+            #item = FoundItem("aws_db_instance", terraform_id=instance["attributes"]["resource_id"], predicted_id=instance["attributes"]["id"], state_data=instance)
+            item = FoundItem("aws_db_instance", terraform_id=instance["attributes"]["id"], predicted_id=instance["attributes"]["id"], state_data=instance)
 
     def compare(self, depth):
-        
-        for key, val in self._instances_in_state.items():
-            if key in self._instances_in_aws:
-                val.real_id = key
-                val.real_data = self._instances_in_aws[key]
-
-        for key, val in self._instances_in_aws.items():
-            if key not in self._instances_in_state:
-                item = FoundItem("aws_db_instance", real_id=key, real_data=val)
-
+        pass
         
