@@ -4,8 +4,10 @@ This module is for RDS Clusters
 
 import logging
 
-from riffdog.data_structures import ReportElement
-from riffdog.resource import AWSResource, register
+from riffdog.data_structures import FoundItem
+from riffdog.resource import register
+
+from ...aws_resource import AWSResource
 
 logger = logging.getLogger(__name__)
 
@@ -27,22 +29,19 @@ class AWSRDSCluster(AWSResource):
 
     def process_state_resource(self, state_resource, state_filename):
         for instance in state_resource["instances"]:
-            self._clusters_in_state[instance["attributes"]["cluster_identifier"]] = instance
+            item = FoundItem("aws_rds_cluster", terraform_id=instance["attributes"]["cluster_identifier"], state_data = instance)
 
     def compare(self, depth):
-        out_report = ReportElement()
 
         for key, val in self._clusters_in_state.items():
-            if key not in self._clusters_in_aws:
-                out_report.in_tf_but_not_real.append(key)
-            else:
-                out_report.matched.append(key)
+            if key in self._clusters_in_aws:
+                val.real_id = key
+                val.real_data = self._clusters_in_aws[key]
 
         for key, val in self._clusters_in_aws.items():
             if key not in self._clusters_in_state:
-                out_report.in_real_but_not_tf.append(key)
+                item = FoundItem("aws_rds_cluster", real_id=key, real_data=val)
 
-        return out_report
 
 
 @register("aws_rds_cluster_instance")
@@ -55,7 +54,7 @@ class AWSRDSClusterInstance(AWSResource):
     _instances_in_state = {}
 
     def fetch_real_regional_resources(self, region):
-        logging.info("Looking for RDS resources")
+        logging.info("Looking for RDS instance resources")
 
         client = self._get_client("rds", region)
 
@@ -68,19 +67,15 @@ class AWSRDSClusterInstance(AWSResource):
 
     def process_state_resource(self, state_resource, state_filename):
         for instance in state_resource["instances"]:
-            self._instances_in_state[instance["attributes"]["identifier"]] = instance
+            item = FoundItem("aws_rds_cluster_instance", terraform_id=instance["attributes"]["identifier"], state_data=instance)
+            self._instances_in_state[instance["attributes"]["identifier"]] = item
 
     def compare(self, depth):
-        out_report = ReportElement()
 
         for key, val in self._instances_in_state.items():
-            if key not in self._instances_in_aws:
-                out_report.in_tf_but_not_real.append(key)
-            else:
-                out_report.matched.append(key)
+            if key in self._instances_in_aws:
+                val.real_id=key
 
         for key, val in self._instances_in_aws.items():
             if key not in self._instances_in_state:
-                out_report.in_real_but_not_tf.append(key)
-
-        return out_report
+                item = FoundItem("aws_rds_cluster_instance", real_id=key, real_data=val)

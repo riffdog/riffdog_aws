@@ -8,35 +8,35 @@ from ...aws_resource import AWSResource
 logger = logging.getLogger(__name__)
 
 
-@register("aws_db_instance")
-class AWSDBInstance(AWSResource):
+@register("aws_lambda_function")
+class AWSLambdaFunction(AWSResource):
     """
-    These are a faux thing to Terraform. An aws_rds_cluster_instance is
-    just an aws_db_instance that belongs to a Cluster.
+    This is aws Lambda functions
     """
 
     def fetch_real_regional_resources(self, region):
-        logger.info("Looking for RDS db resources")
+        logger.info("Looking for lambda function resources")
 
-        client = self._get_client("rds", region)
+        client = self._get_client("lambda", region)
 
-        response = client.describe_db_instances()
+        response = client.list_functions()
         rd = ResourceDirectory()
 
-        for instance in response["DBInstances"]:
+        for instance in response["Functions"]:
             try:
-                item = rd.get_item(predicted_id=instance["DBInstanceIdentifier"])
-                item.real_id = instance["DBInstanceIdentifier"]
+                item = rd.get_item(predicted_id=instance["FunctionName"])
+                item.real_id = instance["FunctionName"]
                 item.real_data = instance
             except KeyError:
                 # that item isnt predicted!
-                item = FoundItem("aws_db_instance", real_id=instance["DBInstanceIdentifier"], real_data=instance)
+                item = FoundItem("aws_lambda_function", real_id=instance["FunctionName"], real_data=instance)
 
     def process_state_resource(self, state_resource, state_filename):
-        logger.info("Found a resource of aws_db_instance!")
+        logger.info("Found a resource of aws_lambda function!")
+        # print(state_resource)
         for instance in state_resource["instances"]:
             #item = FoundItem("aws_db_instance", terraform_id=instance["attributes"]["resource_id"], predicted_id=instance["attributes"]["id"], state_data=instance)
-            item = FoundItem("aws_db_instance", terraform_id=instance["attributes"]["id"], predicted_id=instance["attributes"]["id"], state_data=instance)
+            item = FoundItem("aws_lambda_function", terraform_id=state_resource["name"], predicted_id=instance["attributes"]["id"], state_data=instance)
 
     def compare(self, item, depth):
         # This is now called multiple times
@@ -50,7 +50,9 @@ class AWSDBInstance(AWSResource):
         #print("------------------")
         
         # Presumably we could do some kind of 'map table' to loop over justdefining both sides here?
-        if not item.state_dta['attributes']['instance_class'] == item.real_data['DBInstanceClass']:
-            item.dirty = True
+        # if not item.state_data['attributes']['instance_class'] == item.real_data['DBInstanceClass']:
+        #     item.dirty = True
+
+        pass
         
         

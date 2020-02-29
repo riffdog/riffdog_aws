@@ -4,8 +4,10 @@ This module is for RDS Cluster Parameter Groups
 
 import logging
 
-from riffdog.data_structures import ReportElement
-from riffdog.resource import AWSResource, register
+from riffdog.data_structures import FoundItem
+from riffdog.resource import register
+
+from ...aws_resource import AWSResource
 
 logger = logging.getLogger(__name__)
 
@@ -27,19 +29,16 @@ class AWSRDSClusterParameterGroup(AWSResource):
 
     def process_state_resource(self, state_resource, state_filename):
         for instance in state_resource["instances"]:
-            self._cluster_pgs_in_state[instance["attributes"]["cluster_identifier"]] = instance
+            item = FoundItem("aws_rds_cluster_parameter_group", aws_id=instance["attributes"]["cluster_identifier"], state_data=instance)
+            self._cluster_pgs_in_state[instance["attributes"]["cluster_identifier"]] = item
 
     def compare(self, depth):
-        out_report = ReportElement()
 
         for key, val in self._cluster_pgs_in_state.items():
-            if key not in self._cluster_pgs_in_aws:
-                out_report.in_tf_but_not_real.append(key)
-            else:
-                out_report.matched.append(key)
+            if key in self._cluster_pgs_in_aws:
+                val.real_id = key
+                val.real_data = self._cluster_pgs_in_aws[key]
 
         for key, val in self._cluster_pgs_in_aws.items():
             if key not in self._cluster_pgs_in_state:
-                out_report.in_real_but_not_tf.append(key)
-
-        return out_report
+                FoundItem("aws_rds_cluster_parameter_group", real_id=key, real_data=val)
