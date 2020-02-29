@@ -3,11 +3,12 @@ This module is for S3 bucket processing - terraform & boto and comparison.
 """
 
 import logging
-from riffdog.data_structures import ReportElement
-from riffdog.resource import AWSResource, register
+from riffdog.data_structures import FoundItem
+from riffdog.resource import register
+
+from ..aws_resource import AWSResource 
 
 logger = logging.getLogger(__name__)
-
 
 @register("aws_s3_bucket")
 class S3Buckets(AWSResource):
@@ -27,28 +28,25 @@ class S3Buckets(AWSResource):
             self._real_buckets[bucket['Name']] = bucket
 
     def process_state_resource(self, state_resource, state_filename):
-        self._states_found[state_resource['name']] = state_resource
+        f = FoundItem("aws_s3_bucket", terraform_id=state_resource['name'], state_data=state_resource)
+
+        self._states_found[state_resource['name']] = f
 
     def compare(self, depth):
         # this function should be called once, take the local data and return
         # an array of result elements.
-        out_report = ReportElement()
+        
+        for key, item in self._states_found.items():
 
-        for key, val in self._states_found.items():
-            # This could probably be improved somewhat and it doesn't really take into account if there's more than
-            # one instance here. I would assume there wouldn't be, but who knows?
-            try:
-                real_bucket_name = val['instances'][0]['attributes']['bucket']
-            except (KeyError, IndexError):
-                real_bucket_name = key
+            real_bucket_name = item.state_data['instances'][0]['attributes']['bucket']
+            
+            #except (KeyError, IndexError):
+            #    real_bucket_name = key
 
-            if real_bucket_name not in self._real_buckets:
-                out_report.in_tf_but_not_real.append(key)
-            else:
-                out_report.matched.append(key)
+            if real_bucket_name in self._real_buckets:
+                item.real_id = real_bucket_name
 
         for key, val in self._real_buckets.items():
             if key not in self._states_found:
-                out_report.in_real_but_not_tf.append(key)
+                FoundItem("aws_s3_bucket", real_id=key)
 
-        return out_report
