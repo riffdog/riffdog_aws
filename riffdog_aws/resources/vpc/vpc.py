@@ -31,7 +31,7 @@ class AWSVPC(AWSResource):
     def process_state_resource(self, state_resource, state_filename):
         logger.info("Found a resource of type %s!" % self.resource_type)
         for instance in state_resource["instances"]:
-            FoundItem(self.resource_type, terraform_id=instance["attributes"]["id"], predicted_id=instance["attributes"]["id"], state_data=instance)
+            FoundItem(self.resource_type, terraform_id=state_resource["name"], predicted_id=instance["attributes"]["id"], state_data=instance)
 
     def compare(self, item, depth):
         pass
