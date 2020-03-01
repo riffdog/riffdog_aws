@@ -5,7 +5,7 @@ This module is for RDS Clusters
 import logging
 
 from riffdog.data_structures import FoundItem
-from riffdog.resource import register
+from riffdog.resource import register, ResourceDirectory
 
 from ...aws_resource import AWSResource
 
@@ -14,34 +14,30 @@ logger = logging.getLogger(__name__)
 
 @register("aws_rds_cluster")
 class AWSRDSCluster(AWSResource):
-    _clusters_in_aws = {}
-    _clusters_in_state = {}
+    resource_type = "aws_rds_cluster"
 
     def fetch_real_regional_resources(self, region):
-        logging.info("Looking for RDS resources")
-
+        logging.info("Looking for %s resources..." % self.resource_type)
         client = self._get_client("rds", region)
+        rd = ResourceDirectory()
 
         response = client.describe_db_clusters()
 
         for cluster in response["DBClusters"]:
-            self._clusters_in_aws[cluster["DBClusterIdentifier"]] = cluster
+            try:
+                item = rd.get_item(predicted_id=cluster["DBClusterIdentifier"])
+                item.real_id = cluster["DBClusterIdentifier"]
+                item.real_data = cluster
+            except KeyError:
+                FoundItem(self.resource_type, real_id=cluster["DBClusterIdentifier"], real_data=cluster)
 
     def process_state_resource(self, state_resource, state_filename):
+        logger.info("Found a resource of type %s!" % self.resource_type)
         for instance in state_resource["instances"]:
-            item = FoundItem("aws_rds_cluster", terraform_id=instance["attributes"]["cluster_identifier"], state_data = instance)
+            FoundItem(self.resource_type, terraform_id=state_resource["name"], predicted_id=instance["attributes"]["id"], state_data=instance)
 
-    def compare(self, depth):
-
-        for key, val in self._clusters_in_state.items():
-            if key in self._clusters_in_aws:
-                val.real_id = key
-                val.real_data = self._clusters_in_aws[key]
-
-        for key, val in self._clusters_in_aws.items():
-            if key not in self._clusters_in_state:
-                item = FoundItem("aws_rds_cluster", real_id=key, real_data=val)
-
+    def compare(self, item, depth):
+        pass
 
 
 @register("aws_rds_cluster_instance")
@@ -50,32 +46,29 @@ class AWSRDSClusterInstance(AWSResource):
     These are a faux thing to Terraform. An aws_rds_cluster_instance is
     just an aws_db_instance that belongs to a Cluster.
     """
-    _instances_in_aws = {}
-    _instances_in_state = {}
+    resource_type = "aws_rds_cluster_instance"
 
     def fetch_real_regional_resources(self, region):
-        logging.info("Looking for RDS instance resources")
-
+        logging.info("Looking for %s resources..." % self.resource_type)
         client = self._get_client("rds", region)
+        rd = ResourceDirectory()
 
         response = client.describe_db_instances()
 
         for instance in response["DBInstances"]:
             if "DBClusterIdentifier" in instance:
                 if instance["DBClusterIdentifier"]:
-                    self._instances_in_aws[instance["DBInstanceIdentifier"]] = instance
+                    try:
+                        item = rd.get_item(predicted_id=instance["DBInstanceIdentifier"])
+                        item.real_id = instance["DBInstanceIdentifier"]
+                        item.real_data = instance
+                    except KeyError:
+                        FoundItem(self.resource_type, real_id=instance["DBInstanceIdentifier"], real_data=instance)
 
     def process_state_resource(self, state_resource, state_filename):
+        logger.info("Found a resource of type %s!" % self.resource_type)
         for instance in state_resource["instances"]:
-            item = FoundItem("aws_rds_cluster_instance", terraform_id=instance["attributes"]["identifier"], state_data=instance)
-            self._instances_in_state[instance["attributes"]["identifier"]] = item
+            FoundItem(self.resource_type, terraform_id=state_resource["name"], predicted_id=instance["attributes"]["id"], state_data=instance)
 
     def compare(self, depth):
-
-        for key, val in self._instances_in_state.items():
-            if key in self._instances_in_aws:
-                val.real_id=key
-
-        for key, val in self._instances_in_aws.items():
-            if key not in self._instances_in_state:
-                item = FoundItem("aws_rds_cluster_instance", real_id=key, real_data=val)
+        pass

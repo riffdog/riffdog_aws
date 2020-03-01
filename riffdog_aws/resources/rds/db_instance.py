@@ -10,18 +10,14 @@ logger = logging.getLogger(__name__)
 
 @register("aws_db_instance")
 class AWSDBInstance(AWSResource):
-    """
-    These are a faux thing to Terraform. An aws_rds_cluster_instance is
-    just an aws_db_instance that belongs to a Cluster.
-    """
+    resource_type = "aws_db_instance"
 
     def fetch_real_regional_resources(self, region):
-        logger.info("Looking for RDS db resources")
-
+        logging.info("Looking for %s resources..." % self.resource_type)
         client = self._get_client("rds", region)
+        rd = ResourceDirectory()
 
         response = client.describe_db_instances()
-        rd = ResourceDirectory()
 
         for instance in response["DBInstances"]:
             try:
@@ -29,28 +25,14 @@ class AWSDBInstance(AWSResource):
                 item.real_id = instance["DBInstanceIdentifier"]
                 item.real_data = instance
             except KeyError:
-                # that item isnt predicted!
-                item = FoundItem("aws_db_instance", real_id=instance["DBInstanceIdentifier"], real_data=instance)
+                item = FoundItem(self.resource_type, real_id=instance["DBInstanceIdentifier"], real_data=instance)
 
     def process_state_resource(self, state_resource, state_filename):
-        logger.info("Found a resource of aws_db_instance!")
+        logger.info("Found a resource of type %s!" % self.resource_type)
         for instance in state_resource["instances"]:
-            #item = FoundItem("aws_db_instance", terraform_id=instance["attributes"]["resource_id"], predicted_id=instance["attributes"]["id"], state_data=instance)
-            item = FoundItem("aws_db_instance", terraform_id=instance["attributes"]["id"], predicted_id=instance["attributes"]["id"], state_data=instance)
+            FoundItem(self.resource_type, terraform_id=state_resource["name"], predicted_id=instance["attributes"]["id"], state_data=instance)
 
     def compare(self, item, depth):
-        # This is now called multiple times
-
-        #print("------------------")
-
-        #print(item.real_data)
-        #print("$$$$$$$$$$$$$$$$$$")
-        #print(item.state_data)
-
-        #print("------------------")
-        
         # Presumably we could do some kind of 'map table' to loop over justdefining both sides here?
         if not item.state_dta['attributes']['instance_class'] == item.real_data['DBInstanceClass']:
             item.dirty = True
-        
-        
