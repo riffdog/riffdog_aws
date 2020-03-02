@@ -18,7 +18,7 @@ setup(
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
 
-    version='0.0.1',
+    version='0.1.0',
 
     description='Riffdog Library to scan AWS against Terraform',
     long_description=long_description,
@@ -76,7 +76,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'riffdog'
+        'riffdog>=0.1.0'
     ]
 
 )
