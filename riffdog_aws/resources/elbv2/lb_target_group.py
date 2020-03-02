@@ -14,36 +14,38 @@ logger = logging.getLogger(__name__)
 
 @register("aws_lb_target_group", "aws_alb_target_group")
 class AWSLBTargetGroup(AWSResource):
-    _tgs_in_aws = {}
-    _tgs_in_state = {}
+    # All aws_alb_* will be stored as aws_lb_*
+    resource_type = "aws_lb_target_group"
+    _tgs_in_aws = None
+
+    def __init__(self):
+        self._tgs_in_aws = []
 
     def fetch_real_regional_resources(self, region):
-        logging.info("Looking for aws_lb_target_group/aws_alb_target_group resources")
-
+        logging.info("Looking for %s/aws_alb_target_group resources..." % self.resource_type)
         client = self._get_client("elbv2", region)
+        rd = ResourceDirectory()
 
         response = client.describe_target_groups()
 
         if "TargetGroups" in response:
             for tg in response["TargetGroups"]:
-                self._tgs_in_aws[tg["TargetGroupName"]] = tg
+                try:
+                    item = rd.get_item(predicted_id=tg["TargetGroupName"])
+                    item.real_id = tg["TargetGroupName"]
+                    item.real_data = tg
+                except KeyError:
+                    item = FoundItem(self.resource_type, real_id=tg["TargetGroupName"], real_data=tg)
+                finally:
+                    self._tgs_in_aws.append(item)
 
     def process_state_resource(self, state_resource, state_filename):
+        logger.info("Found a resource of type %s!" % self.resource_type)
         for instance in state_resource["instances"]:
-            # FIXME: how to identify which type was matched
-            item = FoundItem("aws_lb_target_group", terraform_id=instance["attributes"]["name"], state_data=instance)
-            self._tgs_in_state[instance["attributes"]["name"]] = item
+            FoundItem("aws_lb_target_group", terraform_id=state_resource["name"], predicted_id=instance["attributes"]["name"], state_data=instance)
 
     def compare(self, depth):
-
-        for key, val in self._tgs_in_state.items():
-            if key in self._tgs_in_aws:
-                val.real_id = key
-                val.real_data = self._tgs_in_aws[key]
-
-        for key, val in self._tgs_in_aws.items():
-            #FIXME: magic string one of two choices
-            item = FoundItem("aws_lb_target_group", real_id=key, real_data=val)
+        pass
 
     @property
     def target_groups_in_aws(self):
@@ -52,37 +54,32 @@ class AWSLBTargetGroup(AWSResource):
 
 @register("aws_lb_target_group_attachment", "aws_alb_target_group_attachment")
 class AWSLBTargetGroupAttachment(AWSResource):
-    _tg_attachments_in_aws = {}
-    _tg_attachments_in_state = {}
-
+    # All aws_alb_* will be stored as aws_lb_*
+    resource_type = "aws_lb_target_group_attachment"
     depends_on = ["aws_lb_target_group"]
 
     def fetch_real_regional_resources(self, region):
-        logging.info("Looking for aws_lb_target_group_attachment/aws_alb_target_group_attachment resources")
-
+        logging.info("Looking for %s/aws_alb_target_group_attachment resources..." % self.resource_type)
         client = self._get_client("elbv2", region)
+        rd = ResourceDirectory()
 
         target_groups = ResourceDirectory().lookup("aws_lb_target_group").target_groups_in_aws
 
-        for name, attrs in target_groups.items():
-            response = client.describe_target_health(TargetGroupArn=attrs["TargetGroupArn"])
+        for tg in target_groups:
+            response = client.describe_target_health(TargetGroupArn=tg.real_data["TargetGroupArn"])
             if "TargetHealthDescriptions" in response:
                 for target in response["TargetHealthDescriptions"]:
-                    self._tg_attachments_in_aws[target["Target"]["Id"]] = target
+                    try:
+                        item = rd.get_item(predicted_id=target["Target"]["Id"])
+                        item.real_id = target["Target"]["Id"]
+                        item.real_data = target
+                    except KeyError:
+                        FoundItem(self.resource_type, real_id=target["Target"]["Id"], real_data=target)
 
     def process_state_resource(self, state_resource, state_filename):
+        logger.info("Found a resource of type %s!" % self.resource_type)
         for instance in state_resource["instances"]:
-            # FIXME: target group attachment
-            item = FoundItem("aws_lb_target_group_attachment", terraform_id=instance["attributes"]["target_id"], state_data=instance)
-            self._tg_attachments_in_state[instance["attributes"]["target_id"]] = item
+            FoundItem("aws_lb_target_group_attachment", terraform_id=state_resource["name"], predicted_id=instance["attributes"]["target_id"], state_data=instance)
 
     def compare(self, depth):
-
-        for key, val in self._tg_attachments_in_state.items():
-            if key in self._tg_attachments_in_aws:
-                val.real_id = key
-                val.real_data = self._tg_attachments_in_aws[key]
-
-        for key, val in self._tg_attachments_in_aws.items():
-            if key not in self._tg_attachments_in_state:
-                item = FoundItem("aws_lb_target_group_attachment", real_id=key, real_data=val)
+        pass
