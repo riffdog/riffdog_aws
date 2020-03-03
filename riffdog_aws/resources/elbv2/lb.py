@@ -15,11 +15,10 @@ logger = logging.getLogger(__name__)
 
 @register("aws_lb", "aws_alb")
 class AWSLB(AWSResource):
-    resource_type = "aws_lb"
     _lbs_in_aws = None
 
-    def __init__(self, resource_type):
-        super().__init__(resource_type)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._lbs_in_aws = []
 
     def fetch_real_regional_resources(self, region):

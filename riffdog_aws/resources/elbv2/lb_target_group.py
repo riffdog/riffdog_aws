@@ -15,11 +15,10 @@ logger = logging.getLogger(__name__)
 @register("aws_lb_target_group", "aws_alb_target_group")
 class AWSLBTargetGroup(AWSResource):
     # All aws_alb_* will be stored as aws_lb_*
-    resource_type = "aws_lb_target_group"
     _tgs_in_aws = None
 
-    def __init__(self, resource_type):
-        super().__init__(resource_type)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._tgs_in_aws = []
 
     def fetch_real_regional_resources(self, region):
@@ -56,7 +55,6 @@ class AWSLBTargetGroup(AWSResource):
 @register("aws_lb_target_group_attachment", "aws_alb_target_group_attachment")
 class AWSLBTargetGroupAttachment(AWSResource):
     # All aws_alb_* will be stored as aws_lb_*
-    resource_type = "aws_lb_target_group_attachment"
     depends_on = ["aws_lb_target_group"]
 
     def fetch_real_regional_resources(self, region):

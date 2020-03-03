@@ -14,13 +14,12 @@ logger = logging.getLogger(__name__)
 
 @register("aws_lb_listener", "aws_alb_listener")
 class AWSLBListener(AWSResource):
-    # All aws_alb_* will be stored as aws_lb_*
-    resource_type = "aws_lb_listener"
+
     _listeners_in_aws = None
     depends_on = ["aws_lb"]
 
-    def __init__(self, resource_type):
-        super().__init__(resource_type)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._listeners_in_aws = []
 
     def fetch_real_regional_resources(self, region):
@@ -58,12 +57,11 @@ class AWSLBListener(AWSResource):
 @register("aws_lb_listener_rule", "aws_alb_listener_rule")
 class AWSLBListenerRule(AWSResource):
     # All aws_alb_* will be stored as aws_lb_*
-    resource_type = "aws_lb_listener_rule"
     _rules_in_aws = None
     depends_on = ["aws_lb_listener"]
 
-    def __init__(self, resource_type):
-        super().__init__(resource_type)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._rules_in_aws = []
 
     def fetch_real_regional_resources(self, region):
