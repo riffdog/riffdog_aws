@@ -19,7 +19,8 @@ class AWSLBListener(AWSResource):
     _listeners_in_aws = None
     depends_on = ["aws_lb"]
 
-    def __init__(self):
+    def __init__(self, resource_type):
+        super().__init__(resource_type)
         self._listeners_in_aws = []
 
     def fetch_real_regional_resources(self, region):
@@ -61,7 +62,8 @@ class AWSLBListenerRule(AWSResource):
     _rules_in_aws = None
     depends_on = ["aws_lb_listener"]
 
-    def __init__(self):
+    def __init__(self, resource_type):
+        super().__init__(resource_type)
         self._rules_in_aws = []
 
     def fetch_real_regional_resources(self, region):

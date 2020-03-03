@@ -18,7 +18,8 @@ class AWSLBTargetGroup(AWSResource):
     resource_type = "aws_lb_target_group"
     _tgs_in_aws = None
 
-    def __init__(self):
+    def __init__(self, resource_type):
+        super().__init__(resource_type)
         self._tgs_in_aws = []
 
     def fetch_real_regional_resources(self, region):
