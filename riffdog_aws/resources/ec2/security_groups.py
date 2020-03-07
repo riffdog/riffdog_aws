@@ -61,9 +61,9 @@ class AWSSecurityGroupRule(AWSResource):
         using the unique information per rule.
         """
         if not from_port and not to_port:
-            pattern = "sgrule:{sg_id}:self/{protocol}"
+            pattern = "{sg_id}:self/{protocol}"
         else:
-            pattern = "sgrule:{sg_id}:{from_port}-{to_port}/{protocol}"
+            pattern = "{sg_id}:{from_port}-{to_port}/{protocol}"
         return pattern.format(
             sg_id=sg_id,
             from_port=from_port,
