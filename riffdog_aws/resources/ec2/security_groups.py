@@ -99,7 +99,6 @@ class AWSSecurityGroupRule(AWSResource):
                 protocol=instance["attributes"]["protocol"],
                 from_port=instance["attributes"]["from_port"],
                 to_port=instance["attributes"]["to_port"])
-            print(uid)
             FoundItem(self.resource_type, terraform_id=state_resource["name"], predicted_id=uid, state_data=instance)
 
     def compare(self, item, depth):
