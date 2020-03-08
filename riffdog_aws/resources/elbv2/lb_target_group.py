@@ -7,13 +7,13 @@ import logging
 from riffdog.data_structures import FoundItem
 from riffdog.resource import register, ResourceDirectory
 
-from ...aws_resource import AWSResource
+from ...aws_resource import AWSRegionalResource
 
 logger = logging.getLogger(__name__)
 
 
 @register("aws_lb_target_group", "aws_alb_target_group")
-class AWSLBTargetGroup(AWSResource):
+class AWSLBTargetGroup(AWSRegionalResource):
     # All aws_alb_* will be stored as aws_lb_*
     _tgs_in_aws = None
 
@@ -53,7 +53,7 @@ class AWSLBTargetGroup(AWSResource):
 
 
 @register("aws_lb_target_group_attachment", "aws_alb_target_group_attachment")
-class AWSLBTargetGroupAttachment(AWSResource):
+class AWSLBTargetGroupAttachment(AWSRegionalResource):
     # All aws_alb_* will be stored as aws_lb_*
     depends_on = ["aws_lb_target_group"]
 

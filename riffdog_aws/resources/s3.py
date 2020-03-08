@@ -6,15 +6,13 @@ import logging
 from riffdog.data_structures import FoundItem
 from riffdog.resource import register, ResourceDirectory
 
-from ..aws_resource import AWSResource
+from ..aws_resource import AWSGlobalResource
 
 logger = logging.getLogger(__name__)
 
 
 @register("aws_s3_bucket")
-class AWSS3Bucket(AWSResource):
-    resource_type = "aws_s3_bucket"
-    regional_resource = False
+class AWSS3Bucket(AWSGlobalResource):
 
     def fetch_real_global_resources(self):
         logging.info("Looking for %s resources..." % self.resource_type)
