@@ -7,14 +7,14 @@ import logging
 from riffdog.data_structures import FoundItem
 from riffdog.resource import register, ResourceDirectory
 
-from ...aws_resource import AWSResource
+from ...aws_resource import AWSRegionalResource
 
 
 logger = logging.getLogger(__name__)
 
 
 @register("aws_lb", "aws_alb")
-class AWSLB(AWSResource):
+class AWSLB(AWSRegionalResource):
     _lbs_in_aws = None
 
     def __init__(self, *args, **kwargs):

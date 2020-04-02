@@ -7,14 +7,13 @@ import logging
 from riffdog.data_structures import FoundItem
 from riffdog.resource import register, ResourceDirectory
 
-from ...aws_resource import AWSResource
+from ...aws_resource import AWSRegionalResource
 
 logger = logging.getLogger(__name__)
 
 
 @register("aws_rds_cluster")
-class AWSRDSCluster(AWSResource):
-    resource_type = "aws_rds_cluster"
+class AWSRDSCluster(AWSRegionalResource):
 
     def fetch_real_regional_resources(self, region):
         logging.info("Looking for %s resources..." % self.resource_type)
@@ -41,7 +40,7 @@ class AWSRDSCluster(AWSResource):
 
 
 @register("aws_rds_cluster_instance")
-class AWSRDSClusterInstance(AWSResource):
+class AWSRDSClusterInstance(AWSRegionalResource):
     """
     These are a faux thing to Terraform. An aws_rds_cluster_instance is
     just an aws_db_instance that belongs to a Cluster.

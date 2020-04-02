@@ -3,17 +3,16 @@ import logging
 from riffdog.data_structures import FoundItem
 from riffdog.resource import register, ResourceDirectory
 
-from ...aws_resource import AWSResource
+from ...aws_resource import AWSRegionalResource
 
 logger = logging.getLogger(__name__)
 
 
 @register("aws_lambda_function")
-class AWSLambdaFunction(AWSResource):
+class AWSLambdaFunction(AWSRegionalResource):
     """
     This is aws Lambda functions
     """
-    resource_type = "aws_lambda_function"
 
     def fetch_real_regional_resources(self, region):
         logging.info("Looking for %s resources..." % self.resource_type)

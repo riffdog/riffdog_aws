@@ -7,13 +7,13 @@ import logging
 from riffdog.data_structures import FoundItem
 from riffdog.resource import register, ResourceDirectory
 
-from ...aws_resource import AWSResource
+from ...aws_resource import AWSRegionalResource
 
 logger = logging.getLogger(__name__)
 
 
 @register("aws_rds_cluster_parameter_group")
-class AWSRDSClusterParameterGroup(AWSResource):
+class AWSRDSClusterParameterGroup(AWSRegionalResource):
     resource_type = "aws_rds_cluster_parameter_group"
 
     def fetch_real_regional_resources(self, region):

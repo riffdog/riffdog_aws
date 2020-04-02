@@ -7,13 +7,13 @@ import logging
 from riffdog.data_structures import FoundItem
 from riffdog.resource import register, ResourceDirectory
 
-from ...aws_resource import AWSResource
+from ...aws_resource import AWSRegionalResource
 
 logger = logging.getLogger(__name__)
 
 
 @register("aws_instance")
-class AWSInstance(AWSResource):
+class AWSInstance(AWSRegionalResource):
     resource_type = "aws_instance"
 
     def fetch_real_regional_resources(self, region):

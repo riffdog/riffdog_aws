@@ -6,14 +6,13 @@ import logging
 from riffdog.data_structures import FoundItem
 from riffdog.resource import register, ResourceDirectory
 
-from ...aws_resource import AWSResource
+from ...aws_resource import AWSRegionalResource
 
 logger = logging.getLogger(__name__)
 
 
 @register("aws_vpc")
-class AWSVPC(AWSResource):
-    resource_type = "aws_vpc"
+class AWSVPC(AWSRegionalResource):
 
     def fetch_real_regional_resources(self, region):
         logging.info("Looking for %s resources..." % self.resource_type)

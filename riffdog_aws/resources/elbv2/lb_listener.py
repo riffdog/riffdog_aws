@@ -7,13 +7,13 @@ import logging
 from riffdog.data_structures import FoundItem
 from riffdog.resource import register, ResourceDirectory
 
-from ...aws_resource import AWSResource
+from ...aws_resource import AWSRegionalResource
 
 logger = logging.getLogger(__name__)
 
 
 @register("aws_lb_listener", "aws_alb_listener")
-class AWSLBListener(AWSResource):
+class AWSLBListener(AWSRegionalResource):
 
     _listeners_in_aws = None
     depends_on = ["aws_lb"]
@@ -55,7 +55,7 @@ class AWSLBListener(AWSResource):
 
 
 @register("aws_lb_listener_rule", "aws_alb_listener_rule")
-class AWSLBListenerRule(AWSResource):
+class AWSLBListenerRule(AWSRegionalResource):
     # All aws_alb_* will be stored as aws_lb_*
     _rules_in_aws = None
     depends_on = ["aws_lb_listener"]
@@ -93,7 +93,7 @@ class AWSLBListenerRule(AWSResource):
 
 
 @register("aws_lb_listener_certificate", "aws_alb_listener_certificate")
-class AWSLBListenerCertificate(AWSResource):
+class AWSLBListenerCertificate(AWSRegionalResource):
     # All aws_alb_* will be stored as aws_lb_*
     resource_type = "aws_lb_listener_certificate"
     depends_on = ["aws_lb_listener"]

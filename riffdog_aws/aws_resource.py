@@ -9,12 +9,8 @@ class AWSResource(Resource):
     Middle Inheritance to handle getting the correct client & resource objects
     """
 
-    # set this to False if this class is a Global resource (e.g. s3)
-    regional_resource = True
-
     def fetch_real_resources(self):
-        
-        if self.regional_resource:
+        if isinstance(self, AWSRegionalResource):
             for region in RDConfig().aws_regions:
                 self.fetch_real_regional_resources(region)
         else:
@@ -70,3 +66,15 @@ class AWSResource(Resource):
 
         resource = boto3.resource(aws_resource_type, region_name=region)
         return resource
+
+
+class AWSRegionalResource(AWSResource):
+
+    def fetch_real_regional_resources(self, region):
+        raise NotImplemented()
+
+
+class AWSGlobalResource(AWSResource):
+
+    def fetch_real_global_resources(self):
+        raise NotImplemented()
